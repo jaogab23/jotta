@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palmeiras - Dashboard de Desempenho</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        palmeiras: {
+                            green: '#006437',
+                            darkgreen: '#00381e',
+                            lightgreen: '#00874a',
+                            accentgreen: '#00a85d',
+                            gold: '#C5A059',
+                            lightgold: '#e2be79',
+                            white: '#FFFFFF',
+                            silver: '#e2e8f0',
+                            carddark: '#121e17',
+                            bgdark: '#0a120d'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #006437;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00874a;
+        }
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #EAD096 0%, #C5A059 50%, #9A7B38 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gold-border {
+            border-color: #C5A059;
+        }
+        .card-glow {
+            box-shadow: 0 4px 20px -2px rgba(0, 100, 55, 0.25);
+        }
+        .dark .card-glow {
+            box-shadow: 0 4px 25px -2px rgba(0, 168, 93, 0.12);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-palmeiras-bgdark text-gray-800 dark:text-gray-100 min-h-screen flex flex-col transition-colors duration-300">
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-50 bg-palmeiras-darkgreen/95 backdrop-blur-md border-b border-palmeiras-gold/30 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Crest & Title -->
+                <div class="flex items-center space-x-4">
+                    <div class="relative w-12 h-12 flex items-center justify-center rounded-full bg-palmeiras-green border-2 border-palmeiras-gold p-1 shadow-md">
+                        <!-- Palmeiras Shield SVG Representation -->
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                            <circle cx="50" cy="50" r="48" fill="#006437" stroke="#C5A059" stroke-width="3"/>
+                            <circle cx="50" cy="50" r="38" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+                            <text x="50" y="32" font-family="sans-serif" font-weight="bold" font-size="12" fill="#FFFFFF" text-anchor="middle">PALMEIRAS</text>
+                            <path d="M 32 45 L 68 45 L 68 70 C 68 78 50 85 50 85 C 50 85 32 78 32 70 Z" fill="#FFFFFF"/>
+                            <path d="M 35 48 L 65 48 L 65 68 C 65 74 50 81 50 81 C 50 81 35 74 35 68 Z" fill="#006437"/>
+                            <text x="50" y="65" font-family="sans-serif" font-weight="extrabold" font-size="16" fill="#C5A059" text-anchor="middle">P</text>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h1 class="text-xl sm:text-2xl font-black tracking-tight uppercase gold-gradient-text">
+                                SE Palmeiras
+                            </h1>
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-palmeiras-gold/20 text-palmeiras-lightgold border border-palmeiras-gold/40 font-semibold">
+                                Dashboard Oficial
+                            </span>
+                        </div>
+                        <p class="text-xs text-emerald-200/80">Central Stats & performance Analytics</p>
+                    </div>
+                </div>
+
+                <!-- Right Side Actions: Season Picker & Theme Toggle -->
+                <div class="flex items-center space-x-3 sm:space-x-4">
+                    <!-- Season Selector -->
+                    <div class="relative">
+                        <label for="seasonSelect" class="sr-only">Temporada</label>
+                        <div class="flex items-center bg-palmeiras-green/60 border border-palmeiras-gold/50 rounded-xl px-3 py-1.5 focus-within:ring-2 focus-within:ring-palmeiras-gold">
+                            <i data-lucide="calendar" class="w-4 h-4 text-palmeiras-gold mr-2"></i>
+                            <select id="seasonSelect" onchange="changeSeason(this.value)" class="bg-transparent text-sm font-bold text-white focus:outline-none cursor-pointer pr-2">
+                                <option value="2026" class="bg-palmeiras-darkgreen text-white">Temporada 2026</option>
+                                <option value="2025" class="bg-palmeiras-darkgreen text-white">Temporada 2025</option>
+                                <option value="2024" class="bg-palmeiras-darkgreen text-white">Temporada 2024</option>
+                                <option value="2023" class="bg-palmeiras-darkgreen text-white">Temporada 2023</option>
+                                <option value="2022" class="bg-palmeiras-darkgreen text-white">Temporada 2022</option>
+                                <option value="2021" class="bg-palmeiras-darkgreen text-white">Temporada 2021</option>
+                                <option value="2020" class="bg-palmeiras-darkgreen text-white">Temporada 2020</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Theme Toggle -->
+                    <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-palmeiras-green/60 border border-palmeiras-gold/40 text-palmeiras-gold hover:bg-palmeiras-green hover:text-white transition-all shadow-sm" title="Alternar Tema">
+                        <i data-lucide="sun" id="themeIconSun" class="w-5 h-5 hidden"></i>
+                        <i data-lucide="moon" id="themeIconMoon" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- Season Banner / Summary Banner -->
+        <div id="seasonBanner" class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-palmeiras-darkgreen via-palmeiras-green to-emerald-900 border border-palmeiras-gold/40 p-6 sm:p-8 text-white shadow-xl">
+            <!-- Decorative Background Star Shapes -->
+            <div class="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-palmeiras-gold/10 blur-2xl pointer-events-none"></div>
+            <div class="absolute right-1/3 -top-10 w-36 h-36 rounded-full bg-white/5 blur-xl pointer-events-none"></div>
+
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                    <div class="flex items-center space-x-2 text-palmeiras-gold font-bold text-sm tracking-wider uppercase mb-1">
+                        <i data-lucide="trophy" class="w-4 h-4"></i>
+                        <span id="bannerSeasonTitle">TEMPORADA 2026</span>
+                    </div>
+                    <h2 id="bannerTrophies" class="text-2xl sm:text-3xl font-black text-white tracking-tight mb-2">
+                        Campeão Paulista 2026 & Vice-Líder do Brasileirão
+                    </h2>
+                    <p id="bannerSubtitle" class="text-emerald-100/90 text-sm max-w-2xl">
+                        Desempenho atualizado da equipe alviverde nas competições oficiais. Dados detalhados de jogos, gols e aproveitamento técnico.
+                    </p>
+                </div>
+                <!-- Quick Badge Highlight -->
+                <div class="flex items-center space-x-3 bg-black/30 backdrop-blur-md px-4 py-3 rounded-xl border border-palmeiras-gold/30">
+                    <div class="text-center px-2">
+                        <p class="text-xs text-gray-300 font-medium">Técnico</p>
+                        <p id="bannerManager" class="text-sm font-bold text-palmeiras-gold">Abel Ferreira</p>
+                    </div>
+                    <div class="h-8 w-px bg-palmeiras-gold/30"></div>
+                    <div class="text-center px-2">
+                        <p class="text-xs text-gray-300 font-medium">Aproveitamento</p>
+                        <p id="bannerWinRate" class="text-sm font-bold text-emerald-400">70.8%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards Grid (7 Key Metrics) -->
+        <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
+            <!-- Matches -->
+            <div class="bg-white dark:bg-palmeiras-carddark p-4 rounded-xl border border-gray-200 dark:border-emerald-900/40 shadow-sm card-glow transition-all hover:-translate-y-0.5">
+                <div class="flex items-center justify-between text-gray-500 dark:text-gray-400 mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Jogos</span>
+                    <i data-lucide="gamepad-2" class="w-4 h-4 text-emerald-600 dark:text-palmeiras-accentgreen"></i>
+                </div>
+                <div class="text-2xl font-extrabold text-gray-900 dark:text-white" id="kpiMatches">0</div>
+                <span class="text-[10px] text-gray-400">Total Oficial</span>
+            </div>
+
+            <!-- Wins -->
+            <div class="bg-white dark:bg-palmeiras-carddark p-4 rounded-xl border border-gray-200 dark:border-emerald-900/40 shadow-sm card-glow transition-all hover:-translate-y-0.5">
+                <div class="flex items-center justify-between text-emerald-600 dark:text-emerald-400 mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Vitórias</span>
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                </div>
+                <div class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400" id="kpiWins">0</div>
+                <span class="text-[10px] text-gray-400" id="kpiWinsPct">0% do total</span>
+            </div>
+
+            <!-- Draws -->
+            <div class="bg-white dark:bg-palmeiras-carddark p-4 rounded-xl border border-gray-200 dark:border-emerald-900/40 shadow-sm card-glow transition-all hover:-translate-y-0.5">
+                <div class="flex items-center justify-between text-amber-500 dark:text-amber-400 mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Empates</span>
+                    <i data-lucide="minus-circle" class="w-4 h-4"></i>
+                </div>
+                <div class="text-2xl font-extrabold text-amber-500 dark:text-amber-400" id="kpiDraws">0</div>
+                <span class="text-[10px] text-gray-400" id="kpiDrawsPct">0% do total</span>
+            </div>
+
+            <!-- Losses -->
+            <div class="bg-white dark:bg-palmeiras-carddark p-4 rounded-xl border border-gray-200 dark:border-emerald-900/40 shadow-sm card-glow transition-all hover:-translate-y-0.5">
+                <div class="flex items-center justify-between text-rose-500 dark:text-rose-400 mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Derrotas</span>
+                    <i data-lucide="x-circle" class="w-4 h-4"></i>
+                </div>
+                <div class="text-2xl font-extrabold text-rose-500 dark:text-rose-400" id="kpiLosses">0</div>
+                <span class="text-[10px] text-gray-400" id="kpiLossesPct">0% do total</span>
+            </div>
+
+            <!-- Win Rate -->
+            <div class="bg-white dark:bg-palmeiras-carddark p-4 rounded-xl border border-gray-200 dark:border-emerald-900/40 shadow-sm card-glow transition-all hover:-translate-y-0.5">
+                <div class="flex items-center justify-between text-palmeiras-gold mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Aprov.</span>
+                    <i data-lucide="percent" class="w-4 h-4"></i>
+                </div>
+                <div class="text-2xl font-extrabold text-palmeiras-gold" id="kpiWinRate">0%</div>
+                <span class="text-[10px] text-gray-400">Pontos Conquistados</span>
+            </div>
+
+            <!-- Goals Scored -->
+            <div class="bg-white dark:bg-palmeiras-carddark p-4 rounded-xl border border-gray-200 dark:border-emerald-900/40 shadow-sm card-glow transition-all hover:-translate-y-0.5">
+                <div class="flex items-center justify-between text-teal-600 dark:text-teal-400 mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Gols Pró</span>
+                    <i data-lucide="target" class="w-4 h-4"></i>
+                </div>
+                <div class="text-2xl font-extrabold text-teal-600 dark:text-teal-400" id="kpiGoalsScored">0</div>
+                <span class="text-[10px] text-gray-400" id="kpiGoalsScoredAvg">0.0 / jogo</span>
+            </div>
+
+            <!-- Goals Conceded -->
+            <div class="bg-white dark:bg-palmeiras-carddark p-4 rounded-xl border border-gray-200 dark:border-emerald-900/40 shadow-sm card-glow transition-all hover:-translate-y-0.5">
+                <div class="flex items-center justify-between text-purple-500 dark:text-purple-400 mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Gols Contra</span>
+                    <i data-lucide="shield-alert" class="w-4 h-4"></i>
+                </div>
+                <div class="text-2xl font-extrabold text-purple-500 dark:text-purple-400" id="kpiGoalsConceded">0</div>
+                <span class="text-[10px] text-gray-400" id="kpiGoalsConcededAvg">0.0 / jogo</span>
+            </div>
+        </section>
+
+        <!-- Main Analytics Section (Charts Row 1) -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Doughnut Chart: Match Results -->
+            <div class="bg-white dark:bg-palmeiras-carddark p-5 rounded-2xl border border-gray-200 dark:border-emerald-900/40 shadow-sm flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-palmeiras-gold"></i>
+                        Distribuição de Resultados
+                    </h3>
+                </div>
+                <div class="relative flex items-center justify-center my-auto h-60">
+                    <canvas id="resultsPieChart"></canvas>
+                </div>
+                <div class="mt-4 pt-3 border-t border-gray-100 dark:border-emerald-900/30 flex justify-around text-center text-xs">
+                    <div>
+                        <span class="block font-bold text-emerald-500" id="chartLabelWins">0</span>
+                        <span class="text-gray-400">Vitórias</span>
+                    </div>
+                    <div>
+                        <span class="block font-bold text-amber-500" id="chartLabelDraws">0</span>
+                        <span class="text-gray-400">Empates</span>
+                    </div>
+                    <div>
+                        <span class="block font-bold text-rose-500" id="chartLabelLosses">0</span>
+                        <span class="text-gray-400">Derrotas</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bar Chart: Goals by Competition -->
+            <div class="lg:col-span-2 bg-white dark:bg-palmeiras-carddark p-5 rounded-2xl border border-gray-200 dark:border-emerald-900/40 shadow-sm flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <i data-lucide="bar-chart-3" class="w-4 h-4 text-palmeiras-gold"></i>
+                        Gols Marcados vs Sofridos por Competição
+                    </h3>
+                    <span class="text-xs text-gray-400">Temporada selecionada</span>
+                </div>
+                <div class="relative h-64 w-full">
+                    <canvas id="competitionGoalsChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Historical Performance Comparison Chart (Line Chart) -->
+        <section class="bg-white dark:bg-palmeiras-carddark p-5 rounded-2xl border border-gray-200 dark:border-emerald-900/40 shadow-sm">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
+                <div>
+                    <h3 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <i data-lucide="trending-up" class="w-4 h-4 text-palmeiras-gold"></i>
+                        Evolução Histórica do Aproveitamento (2020 - 2026)
+                    </h3>
+                    <p class="text-xs text-gray-400">Comparativo percentual de vitórias e pontos por ano na Era Abel Ferreira</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                        Histórico Recente
+                    </span>
+                </div>
+            </div>
+            <div class="relative h-72 w-full">
+                <canvas id="historicalTrendChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Bottom Grid: Top Scorers & Matches List -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Top Scorers & Assist Table (5 Cols) -->
+            <div class="lg:col-span-5 bg-white dark:bg-palmeiras-carddark p-5 rounded-2xl border border-gray-200 dark:border-emerald-900/40 shadow-sm flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <i data-lucide="award" class="w-4 h-4 text-palmeiras-gold"></i>
+                        Artilharia & Destaques
+                    </h3>
+                    <span class="text-xs text-palmeiras-gold font-medium" id="scorersSeasonBadge">2026</span>
+                </div>
+
+                <div class="overflow-x-auto flex-grow">
+                    <table class="w-full text-left text-sm">
+                        <thead class="text-xs text-gray-400 border-b border-gray-100 dark:border-emerald-900/40 uppercase">
+                            <tr>
+                                <th class="py-2.5 px-2">Atleta</th>
+                                <th class="py-2.5 px-2 text-center">Pos.</th>
+                                <th class="py-2.5 px-2 text-center">Gols</th>
+                                <th class="py-2.5 px-2 text-center">Assist.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topScorersTableBody" class="divide-y divide-gray-100 dark:divide-emerald-900/20 font-medium">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Matches / Competition Filter List (7 Cols) -->
+            <div class="lg:col-span-7 bg-white dark:bg-palmeiras-carddark p-5 rounded-2xl border border-gray-200 dark:border-emerald-900/40 shadow-sm flex flex-col">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                    <h3 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <i data-lucide="list-checks" class="w-4 h-4 text-palmeiras-gold"></i>
+                        Jogos & Resultados
+                    </h3>
+
+                    <!-- Competition Filter Buttons -->
+                    <div class="flex flex-wrap gap-1" id="competitionFilterContainer">
+                        <button onclick="filterMatches('ALL')" class="comp-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-palmeiras-green text-white border border-palmeiras-gold/40 transition">
+                            Todos
+                        </button>
+                        <!-- Dynamic filter buttons inserted here -->
+                    </div>
+                </div>
+
+                <!-- Matches List Container -->
+                <div class="space-y-2 max-h-80 overflow-y-auto pr-1" id="matchesList">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Trophies Carousel / Showcase -->
+        <section class="bg-gradient-to-r from-palmeiras-darkgreen via-palmeiras-green to-palmeiras-darkgreen p-6 rounded-2xl border border-palmeiras-gold/40 text-white shadow-lg">
+            <h3 class="text-lg font-bold uppercase tracking-wider text-palmeiras-gold mb-4 flex items-center gap-2">
+                <i data-lucide="sparkles" class="w-5 h-5"></i>
+                Títulos Conquistados no Período (2020 - 2026)
+            </h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 text-center">
+                <div class="bg-black/30 p-3 rounded-xl border border-palmeiras-gold/20 hover:border-palmeiras-gold/60 transition">
+                    <div class="text-2xl font-black text-palmeiras-gold">2x</div>
+                    <div class="text-xs font-semibold text-gray-200">Copa Libertadores</div>
+                    <div class="text-[10px] text-emerald-300">2020, 2021</div>
+                </div>
+                <div class="bg-black/30 p-3 rounded-xl border border-palmeiras-gold/20 hover:border-palmeiras-gold/60 transition">
+                    <div class="text-2xl font-black text-palmeiras-gold">2x</div>
+                    <div class="text-xs font-semibold text-gray-200">Brasileirão A</div>
+                    <div class="text-[10px] text-emerald-300">2022, 2023</div>
+                </div>
+                <div class="bg-black/30 p-3 rounded-xl border border-palmeiras-gold/20 hover:border-palmeiras-gold/60 transition">
+                    <div class="text-2xl font-black text-palmeiras-gold">1x</div>
+                    <div class="text-xs font-semibold text-gray-200">Copa do Brasil</div>
+                    <div class="text-[10px] text-emerald-300">2020</div>
+                </div>
+                <div class="bg-black/30 p-3 rounded-xl border border-palmeiras-gold/20 hover:border-palmeiras-gold/60 transition">
+                    <div class="text-2xl font-black text-palmeiras-gold">5x</div>
+                    <div class="text-xs font-semibold text-gray-200">Paulistão</div>
+                    <div class="text-[10px] text-emerald-300">20, 22, 23, 24, 26</div>
+                </div>
+                <div class="bg-black/30 p-3 rounded-xl border border-palmeiras-gold/20 hover:border-palmeiras-gold/60 transition">
+                    <div class="text-2xl font-black text-palmeiras-gold">1x</div>
+                    <div class="text-xs font-semibold text-gray-200">Recopa Sul-Amer.</div>
+                    <div class="text-[10px] text-emerald-300">2022</div>
+                </div>
+                <div class="bg-black/30 p-3 rounded-xl border border-palmeiras-gold/20 hover:border-palmeiras-gold/60 transition">
+                    <div class="text-2xl font-black text-palmeiras-gold">1x</div>
+                    <div class="text-xs font-semibold text-gray-200">Supercopa do Brasil</div>
+                    <div class="text-[10px] text-emerald-300">2023</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-palmeiras-darkgreen border-t border-palmeiras-gold/30 text-gray-300 text-xs py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+            <p class="font-semibold text-white">Sociedade Esportiva Palmeiras — Dashboard de Estatísticas</p>
+            <p class="text-emerald-200/60">Dados ilustrativos e atualizados da trajetória do Verdão (2020 - 2026).</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Data & Logic -->
+    <script>
+        // Palmeiras Multi-Season Dataset (2020 - 2026)
+        const seasonsData = {
+            "2026": {
+                summary: {
+                    title: "Campeão Paulista 2026 & Vice-Líder do Brasileirão",
+                    subtitle: "Temporada consistente marcada pelo tricampeonato estadual sob o comando de Abel Ferreira e sólida campanha nas competições nacionais.",
+                    manager: "Abel Ferreira",
+                    trophies: ["Campeão Paulista 2026"]
+                },
+                stats: {
+                    matches: 66,
+                    wins: 40,
+                    draws: 17,
+                    losses: 9,
+                    winRate: 70.8,
+                    goalsScored: 108,
+                    goalsConceded: 47
+                },
+                competitions: [
+                    { name: "Paulistão", matches: 16, wins: 11, draws: 3, losses: 2, gf: 28, ga: 11 },
+                    { name: "Brasileirão", matches: 33, wins: 20, draws: 10, losses: 3, gf: 54, ga: 22 },
+                    { name: "Libertadores", matches: 10, wins: 5, draws: 2, losses: 3, gf: 14, ga: 9 },
+                    { name: "Copa do Brasil", matches: 7, wins: 4, draws: 2, losses: 1, gf: 12, ga: 5 }
+                ],
+                scorers: [
+                    { name: "Flaco López", pos: "ATA", goals: 22, assists: 6 },
+                    { name: "Vitor Roque", pos: "ATA", goals: 16, assists: 4 },
+                    { name: "Raphael Veiga", pos: "MEI", goals: 14, assists: 11 },
+                    { name: "Estêvão", pos: "ATA", goals: 12, assists: 8 },
+                    { name: "Maurício", pos: "MEI", goals: 9, assists: 7 },
+                    { name: "Felipe Anderson", pos: "MEI", goals: 7, assists: 9 }
+                ],
+                matches: [
+                    { date: "02/11/2026", comp: "Brasileirão", home: "Palmeiras", away: "Santos", score: "2 - 0", result: "W" },
+                    { date: "29/10/2026", comp: "Libertadores", home: "LDU Quito", away: "Palmeiras", score: "1 - 1", result: "D" },
+                    { date: "25/10/2026", comp: "Brasileirão", home: "Flamengo", away: "Palmeiras", score: "1 - 2", result: "W" },
+                    { date: "18/10/2026", comp: "Copa do Brasil", home: "Palmeiras", away: "Grêmio", score: "3 - 1", result: "W" },
+                    { date: "08/10/2026", comp: "Brasileirão", home: "Palmeiras", away: "Corinthians", score: "1 - 0", result: "W" },
+                    { date: "07/04/2026", comp: "Paulistão", home: "Palmeiras", away: "Santos", score: "2 - 0", result: "W" },
+                    { date: "30/03/2026", comp: "Paulistão", home: "Santos", away: "Palmeiras", score: "1 - 0", result: "L" }
+                ]
+            },
+            "2025": {
+                summary: {
+                    title: "Vice-Campeão Brasileiro & Campeão Paulista",
+                    subtitle: "Ano de grande regularidade com título estadual e disputa acirrada até a última rodada do Campeonato Brasileiro.",
+                    manager: "Abel Ferreira",
+                    trophies: ["Campeão Paulista 2025"]
+                },
+                stats: {
+                    matches: 73,
+                    wins: 43,
+                    draws: 16,
+                    losses: 14,
+                    winRate: 66.2,
+                    goalsScored: 118,
+                    goalsConceded: 58
+                },
+                competitions: [
+                    { name: "Paulistão", matches: 16, wins: 11, draws: 4, losses: 1, gf: 28, ga: 10 },
+                    { name: "Brasileirão", matches: 38, wins: 22, draws: 7, losses: 9, gf: 58, ga: 32 },
+                    { name: "Libertadores", matches: 12, wins: 7, draws: 3, losses: 2, gf: 22, ga: 10 },
+                    { name: "Copa do Brasil", matches: 7, wins: 3, draws: 2, losses: 2, gf: 10, ga: 6 }
+                ],
+                scorers: [
+                    { name: "Flaco López", pos: "ATA", goals: 21, assists: 5 },
+                    { name: "Raphael Veiga", pos: "MEI", goals: 17, assists: 9 },
+                    { name: "Estêvão", pos: "ATA", goals: 15, assists: 10 },
+                    { name: "Rony", pos: "ATA", goals: 10, assists: 4 },
+                    { name: "Maurício", pos: "MEI", goals: 8, assists: 5 }
+                ],
+                matches: [
+                    { date: "08/12/2025", comp: "Brasileirão", home: "Palmeiras", away: "Fluminense", score: "1 - 0", result: "W" },
+                    { date: "04/12/2025", comp: "Brasileirão", home: "Cruzeiro", away: "Palmeiras", score: "1 - 2", result: "W" },
+                    { date: "30/10/2025", comp: "Libertadores", home: "Palmeiras", away: "Botafogo", score: "1 - 1", result: "D" },
+                    { date: "07/04/2025", comp: "Paulistão", home: "Palmeiras", away: "Santos", score: "2 - 0", result: "W" }
+                ]
+            },
+            "2024": {
+                summary: {
+                    title: "Tricampeão Paulista Consecutive",
+                    subtitle: "Conquista marcante do tricampeonato estadual consecutivo (2022, 2023, 2024) e mais uma grande campanha no Brasileirão.",
+                    manager: "Abel Ferreira",
+                    trophies: ["Campeão Paulista 2024"]
+                },
+                stats: {
+                    matches: 71,
+                    wins: 41,
+                    draws: 17,
+                    losses: 13,
+                    winRate: 65.7,
+                    goalsScored: 112,
+                    goalsConceded: 53
+                },
+                competitions: [
+                    { name: "Paulistão", matches: 16, wins: 11, draws: 4, losses: 1, gf: 28, ga: 11 },
+                    { name: "Brasileirão", matches: 38, wins: 22, draws: 7, losses: 9, gf: 61, ga: 33 },
+                    { name: "Libertadores", matches: 8, wins: 4, draws: 3, losses: 1, gf: 16, ga: 7 },
+                    { name: "Copa do Brasil", matches: 4, wins: 2, draws: 1, losses: 1, gf: 4, ga: 2 },
+                    { name: "Supercopa", matches: 1, wins: 0, draws: 1, losses: 0, gf: 0, ga: 0 }
+                ],
+                scorers: [
+                    { name: "Flaco López", pos: "ATA", goals: 21, assists: 3 },
+                    { name: "Raphael Veiga", pos: "MEI", goals: 19, assists: 7 },
+                    { name: "Estêvão", pos: "ATA", goals: 13, assists: 9 },
+                    { name: "Endrick", pos: "ATA", goals: 4, assists: 2 },
+                    { name: "Rony", pos: "ATA", goals: 10, assists: 6 }
+                ],
+                matches: [
+                    { date: "08/12/2024", comp: "Brasileirão", home: "Palmeiras", away: "Fluminense", score: "1 - 0", result: "W" },
+                    { date: "07/04/2024", comp: "Paulistão", home: "Palmeiras", away: "Santos", score: "2 - 0", result: "W" },
+                    { date: "31/03/2024", comp: "Paulistão", home: "Santos", away: "Palmeiras", score: "1 - 0", result: "L" }
+                ]
+            },
+            "2023": {
+                summary: {
+                    title: "Bicampeão Brasileiro & Supercopa do Brasil",
+                    subtitle: "Arrancada histórica no 2º turno do Brasileirão superando o Botafogo e garantindo o 12º título nacional do clube.",
+                    manager: "Abel Ferreira",
+                    trophies: ["Campeão Brasileiro 2023", "Campeão Supercopa 2023", "Campeão Paulista 2023"]
+                },
+                stats: {
+                    matches: 73,
+                    wins: 41,
+                    draws: 19,
+                    losses: 13,
+                    winRate: 64.8,
+                    goalsScored: 124,
+                    goalsConceded: 57
+                },
+                competitions: [
+                    { name: "Paulistão", matches: 16, wins: 11, draws: 4, losses: 1, gf: 25, ga: 7 },
+                    { name: "Brasileirão", matches: 38, wins: 20, draws: 10, losses: 8, gf: 64, ga: 33 },
+                    { name: "Libertadores", matches: 12, wins: 7, draws: 4, losses: 1, gf: 21, ga: 7 },
+                    { name: "Copa do Brasil", matches: 6, wins: 2, draws: 1, losses: 3, gf: 9, ga: 7 },
+                    { name: "Supercopa", matches: 1, wins: 1, draws: 0, losses: 0, gf: 4, ga: 3 }
+                ],
+                scorers: [
+                    { name: "Raphael Veiga", pos: "MEI", goals: 18, assists: 18 },
+                    { name: "Rony", pos: "ATA", goals: 14, assists: 7 },
+                    { name: "Endrick", pos: "ATA", goals: 14, assists: 1 },
+                    { name: "Artur", pos: "ATA", goals: 10, assists: 2 },
+                    { name: "Gustavo Gómez", pos: "ZAG", goals: 6, assists: 5 }
+                ],
+                matches: [
+                    { date: "06/12/2023", comp: "Brasileirão", home: "Cruzeiro", away: "Palmeiras", score: "1 - 1", result: "D" },
+                    { date: "03/12/2023", comp: "Brasileirão", home: "Palmeiras", away: "Fluminense", score: "1 - 0", result: "W" },
+                    { date: "01/11/2023", comp: "Brasileirão", home: "Botafogo", away: "Palmeiras", score: "3 - 4", result: "W" },
+                    { date: "28/01/2023", comp: "Supercopa", home: "Palmeiras", away: "Flamengo", score: "4 - 3", result: "W" }
+                ]
+            },
+            "2022": {
+                summary: {
+                    title: "Campeão Brasileiro, Recopa & Paulistão",
+                    subtitle: "Dominância absoluta no futebol brasileiro, vencendo o Brasileirão com apenas 3 derrotas e batendo recordes de invencibilidade.",
+                    manager: "Abel Ferreira",
+                    trophies: ["Campeão Brasileiro 2022", "Campeão Recopa Sul-Americana", "Campeão Paulista 2022"]
+                },
+                stats: {
+                    matches: 74,
+                    wins: 48,
+                    draws: 19,
+                    losses: 7,
+                    winRate: 73.4,
+                    goalsScored: 142,
+                    goalsConceded: 50
+                },
+                competitions: [
+                    { name: "Paulistão", matches: 16, wins: 12, draws: 3, losses: 1, gf: 26, ga: 7 },
+                    { name: "Brasileirão", matches: 38, wins: 23, draws: 12, losses: 3, gf: 66, ga: 27 },
+                    { name: "Libertadores", matches: 12, wins: 8, draws: 3, losses: 1, gf: 37, ga: 8 },
+                    { name: "Copa do Brasil", matches: 4, wins: 3, draws: 0, losses: 1, gf: 7, ga: 3 },
+                    { name: "Recopa", matches: 2, wins: 1, draws: 1, losses: 0, gf: 4, ga: 2 },
+                    { name: "Mundial", matches: 2, wins: 1, draws: 0, losses: 1, gf: 3, ga: 3 }
+                ],
+                scorers: [
+                    { name: "Rony", pos: "ATA", goals: 23, assists: 6 },
+                    { name: "Raphael Veiga", pos: "MEI", goals: 21, assists: 7 },
+                    { name: "Dudu", pos: "ATA", goals: 10, assists: 13 },
+                    { name: "Scarpa", pos: "MEI", goals: 13, assists: 16 },
+                    { name: "Murilo", pos: "ZAG", goals: 11, assists: 2 }
+                ],
+                matches: [
+                    { date: "02/11/2022", comp: "Brasileirão", home: "Palmeiras", away: "Fortaleza", score: "4 - 0", result: "W" },
+                    { date: "03/04/2022", comp: "Paulistão", home: "Palmeiras", away: "Säo Paulo", score: "4 - 0", result: "W" },
+                    { date: "02/03/2022", comp: "Recopa", home: "Palmeiras", away: "Athletico-PR", score: "2 - 0", result: "W" }
+                ]
+            },
+            "2021": {
+                summary: {
+                    title: "Bicampeão da Copa Libertadores da América",
+                    subtitle: "Ano de glória continental ao vencer o Flamengo na grande final em Montevidéu e defender o título da Libertadores.",
+                    manager: "Abel Ferreira",
+                    trophies: ["Campeão Libertadores 2021"]
+                },
+                stats: {
+                    matches: 72,
+                    wins: 38,
+                    draws: 14,
+                    losses: 20,
+                    winRate: 59.2,
+                    goalsScored: 114,
+                    goalsConceded: 69
+                },
+                competitions: [
+                    { name: "Paulistão", matches: 16, wins: 8, draws: 4, losses: 4, gf: 21, ga: 12 },
+                    { name: "Brasileirão", matches: 38, wins: 20, draws: 6, losses: 12, gf: 58, ga: 43 },
+                    { name: "Libertadores", matches: 13, wins: 9, draws: 3, losses: 1, gf: 29, ga: 10 },
+                    { name: "Copa do Brasil", matches: 2, wins: 1, draws: 0, losses: 1, gf: 1, ga: 1 },
+                    { name: "Outros", matches: 3, wins: 0, draws: 1, losses: 2, gf: 5, ga: 3 }
+                ],
+                scorers: [
+                    { name: "Raphael Veiga", pos: "MEI", goals: 18, assists: 6 },
+                    { name: "Rony", pos: "ATA", goals: 12, assists: 3 },
+                    { name: "Willian", pos: "ATA", goals: 10, assists: 3 },
+                    { name: "Dudu", pos: "ATA", goals: 7, assists: 4 },
+                    { name: "Gustavo Scarpa", pos: "MEI", goals: 8, assists: 14 }
+                ],
+                matches: [
+                    { date: "27/11/2021", comp: "Libertadores", home: "Palmeiras", away: "Flamengo", score: "2 - 1", result: "W" },
+                    { date: "29/09/2021", comp: "Libertadores", home: "Atlético-MG", away: "Palmeiras", score: "1 - 1", result: "D" },
+                    { date: "23/05/2021", comp: "Paulistão", home: "São Paulo", away: "Palmeiras", score: "2 - 0", result: "L" }
+                ]
+            },
+            "2020": {
+                summary: {
+                    title: "Tríplice Coroa (Libertadores, Copa do Brasil & Paulistão)",
+                    subtitle: "Temporada inesquecível da Tríplice Coroa sob comando de Abel Ferreira, conquistando a América no Maracanã.",
+                    manager: "Vanderlei Luxemburgo / Abel Ferreira",
+                    trophies: ["Campeão Libertadores 2020", "Campeão Copa do Brasil 2020", "Campeão Paulista 2020"]
+                },
+                stats: {
+                    matches: 79,
+                    wins: 40,
+                    draws: 25,
+                    losses: 14,
+                    winRate: 61.1,
+                    goalsScored: 121,
+                    goalsConceded: 56
+                },
+                competitions: [
+                    { name: "Paulistão", matches: 16, wins: 8, draws: 6, losses: 2, gf: 21, ga: 7 },
+                    { name: "Brasileirão", matches: 38, wins: 15, draws: 13, losses: 10, gf: 51, ga: 37 },
+                    { name: "Libertadores", matches: 13, wins: 10, draws: 2, losses: 1, gf: 33, ga: 8 },
+                    { name: "Copa do Brasil", matches: 8, wins: 6, draws: 2, losses: 0, gf: 15, ga: 4 },
+                    { name: "Mundial", matches: 4, wins: 1, draws: 2, losses: 1, gf: 1, ga: 0 }
+                ],
+                scorers: [
+                    { name: "Luiz Adriano", pos: "ATA", goals: 20, assists: 4 },
+                    { name: "Willian", pos: "ATA", goals: 18, assists: 5 },
+                    { name: "Raphael Veiga", pos: "MEI", goals: 18, assists: 4 },
+                    { name: "Rony", pos: "ATA", goals: 11, assists: 9 },
+                    { name: "Gustavo Gómez", pos: "ZAG", goals: 6, assists: 1 }
+                ],
+                matches: [
+                    { date: "07/03/2021", comp: "Copa do Brasil", home: "Palmeiras", away: "Grêmio", score: "2 - 0", result: "W" },
+                    { date: "30/01/2021", comp: "Libertadores", home: "Palmeiras", away: "Santos", score: "1 - 0", result: "W" },
+                    { date: "08/08/2020", comp: "Paulistão", home: "Palmeiras", away: "Corinthians", score: "1 - 1 (5-4 p)", result: "W" }
+                ]
+            }
+        };
+
+        // Historical Data for Line Chart (Win Rate Trends)
+        const historicalData = {
+            labels: ["2020", "2021", "2022", "2023", "2024", "2025", "2026"],
+            winRates: [61.1, 59.2, 73.4, 64.8, 65.7, 66.2, 70.8],
+            goalsScored: [121, 114, 142, 124, 112, 118, 108],
+            wins: [40, 38, 48, 41, 41, 43, 40]
+        };
+
+        // Chart Instances
+        let resultsChartInstance = null;
+        let compChartInstance = null;
+        let trendChartInstance = null;
+
+        let currentSeason = "2026";
+        let currentFilter = "ALL";
+
+        // Initialize App
+        window.onload = function() {
+            lucide.createIcons();
+            loadSeasonData(currentSeason);
+            renderHistoricalChart();
+            initTheme();
+        };
+
+        function changeSeason(season) {
+            currentSeason = season;
+            currentFilter = "ALL";
+            loadSeasonData(season);
+        }
+
+        function loadSeasonData(seasonKey) {
+            const data = seasonsData[seasonKey];
+            if (!data) return;
+
+            // 1. Banner Info
+            document.getElementById('bannerSeasonTitle').innerText = `TEMPORADA ${seasonKey}`;
+            document.getElementById('bannerTrophies').innerText = data.summary.title;
+            document.getElementById('bannerSubtitle').innerText = data.summary.subtitle;
+            document.getElementById('bannerManager').innerText = data.summary.manager;
+            document.getElementById('bannerWinRate').innerText = `${data.stats.winRate}%`;
+
+            // 2. KPI Cards
+            const s = data.stats;
+            document.getElementById('kpiMatches').innerText = s.matches;
+            document.getElementById('kpiWins').innerText = s.wins;
+            document.getElementById('kpiWinsPct').innerText = `${((s.wins/s.matches)*100).toFixed(1)}% do total`;
+            document.getElementById('kpiDraws').innerText = s.draws;
+            document.getElementById('kpiDrawsPct').innerText = `${((s.draws/s.matches)*100).toFixed(1)}% do total`;
+            document.getElementById('kpiLosses').innerText = s.losses;
+            document.getElementById('kpiLossesPct').innerText = `${((s.losses/s.matches)*100).toFixed(1)}% do total`;
+            document.getElementById('kpiWinRate').innerText = `${s.winRate}%`;
+            document.getElementById('kpiGoalsScored').innerText = s.goalsScored;
+            document.getElementById('kpiGoalsScoredAvg').innerText = `${(s.goalsScored/s.matches).toFixed(2)} / jogo`;
+            document.getElementById('kpiGoalsConceded').innerText = s.goalsConceded;
+            document.getElementById('kpiGoalsConcededAvg').innerText = `${(s.goalsConceded/s.matches).toFixed(2)} / jogo`;
+
+            // Labels inside Doughnut card
+            document.getElementById('chartLabelWins').innerText = s.wins;
+            document.getElementById('chartLabelDraws').innerText = s.draws;
+            document.getElementById('chartLabelLosses').innerText = s.losses;
+
+            // 3. Render Charts
+            renderResultsPieChart(s.wins, s.draws, s.losses);
+            renderCompetitionChart(data.competitions);
+
+            // 4. Render Scorers Table
+            renderScorersTable(data.scorers);
+            document.getElementById('scorersSeasonBadge').innerText = seasonKey;
+
+            // 5. Render Matches & Competition Filters
+            renderMatchesFilters(data.competitions);
+            renderMatchesList(data.matches, "ALL");
+        }
+
+        // Render Doughnut Chart for Match Results
+        function renderResultsPieChart(wins, draws, losses) {
+            const ctx = document.getElementById('resultsPieChart').getContext('2d');
+            if (resultsChartInstance) resultsChartInstance.destroy();
+
+            const isDark = document.documentElement.classList.contains('dark');
+
+            resultsChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Vitórias', 'Empates', 'Derrotas'],
+                    datasets: [{
+                        data: [wins, draws, losses],
+                        backgroundColor: [
+                            '#00a85d', // Palmeiras Green
+                            '#C5A059', // Gold
+                            '#e11d48'  // Rose/Red
+                        ],
+                        borderWidth: 2,
+                        borderColor: isDark ? '#121e17' : '#ffffff',
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = wins + draws + losses;
+                                    const value = context.raw;
+                                    const pct = ((value / total) * 100).toFixed(1);
+                                    return `${context.label}: ${value} (${pct}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '68%'
+                }
+            });
+        }
+
+        // Render Bar Chart for Competition Goals
+        function renderCompetitionChart(competitions) {
+            const ctx = document.getElementById('competitionGoalsChart').getContext('2d');
+            if (compChartInstance) compChartInstance.destroy();
+
+            const labels = competitions.map(c => c.name);
+            const goalsFor = competitions.map(c => c.gf);
+            const goalsAgainst = competitions.map(c => c.ga);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#9ca3af' : '#4b5563';
+
+            compChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Gols Marcados',
+                            data: goalsFor,
+                            backgroundColor: '#00a85d',
+                            borderRadius: 6,
+                            barPercentage: 0.6
+                        },
+                        {
+                            label: 'Gols Sofridos',
+                            data: goalsAgainst,
+                            backgroundColor: '#C5A059',
+                            borderRadius: 6,
+                            barPercentage: 0.6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: textColor,
+                                font: { family: 'Inter', size: 12, weight: '600' }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: textColor, font: { family: 'Inter' } }
+                        },
+                        y: {
+                            grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' },
+                            ticks: { color: textColor, font: { family: 'Inter' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render Historical Trend Line Chart
+        function renderHistoricalChart() {
+            const ctx = document.getElementById('historicalTrendChart').getContext('2d');
+            if (trendChartInstance) trendChartInstance.destroy();
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#9ca3af' : '#4b5563';
+
+            trendChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: historicalData.labels,
+                    datasets: [
+                        {
+                            label: 'Aproveitamento (%)',
+                            data: historicalData.winRates,
+                            borderColor: '#C5A059',
+                            backgroundColor: 'rgba(197, 160, 89, 0.15)',
+                            fill: true,
+                            tension: 0.35,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#C5A059',
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Vitórias na Temporada',
+                            data: historicalData.wins,
+                            borderColor: '#00a85d',
+                            backgroundColor: 'transparent',
+                            borderDash: [5, 5],
+                            tension: 0.2,
+                            borderWidth: 2,
+                            pointBackgroundColor: '#00a85d',
+                            pointRadius: 4,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: textColor,
+                                font: { family: 'Inter', size: 12, weight: '600' }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: textColor, font: { family: 'Inter', weight: 'bold' } }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            min: 50,
+                            max: 80,
+                            title: { display: true, text: 'Aproveitamento (%)', color: textColor },
+                            grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' },
+                            ticks: { color: textColor }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            min: 30,
+                            max: 55,
+                            grid: { drawOnChartArea: false },
+                            title: { display: true, text: 'Vitórias Total', color: textColor },
+                            ticks: { color: textColor }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render Scorers Table
+        function renderScorersTable(scorers) {
+            const tbody = document.getElementById('topScorersTableBody');
+            tbody.innerHTML = '';
+
+            scorers.forEach((s, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 dark:hover:bg-emerald-950/30 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-2.5 px-2 flex items-center space-x-2">
+                        <span class="w-5 h-5 flex items-center justify-center rounded-full ${idx === 0 ? 'bg-palmeiras-gold text-white font-bold text-xs' : 'text-gray-400 text-xs'}">${idx + 1}</span>
+                        <span class="font-bold text-gray-900 dark:text-white">${s.name}</span>
+                    </td>
+                    <td class="py-2.5 px-2 text-center text-xs text-gray-500 dark:text-gray-400">${s.pos}</td>
+                    <td class="py-2.5 px-2 text-center font-extrabold text-emerald-600 dark:text-palmeiras-accentgreen">${s.goals}</td>
+                    <td class="py-2.5 px-2 text-center text-gray-600 dark:text-gray-300">${s.assists}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Render Matches Filter Buttons
+        function renderMatchesFilters(competitions) {
+            const container = document.getElementById('competitionFilterContainer');
+            container.innerHTML = `
+                <button onclick="filterMatches('ALL')" class="comp-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold ${currentFilter === 'ALL' ? 'bg-palmeiras-green text-white border border-palmeiras-gold/40' : 'bg-gray-100 dark:bg-emerald-950/60 text-gray-600 dark:text-gray-300 hover:bg-gray-200'} transition">
+                    Todos
+                </button>
+            `;
+
+            competitions.forEach(c => {
+                const isSelected = currentFilter === c.name;
+                const btn = document.createElement('button');
+                btn.onclick = () => filterMatches(c.name);
+                btn.className = `comp-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold ${isSelected ? 'bg-palmeiras-green text-white border border-palmeiras-gold/40' : 'bg-gray-100 dark:bg-emerald-950/60 text-gray-600 dark:text-gray-300 hover:bg-gray-200'} transition`;
+                btn.innerText = c.name;
+                container.appendChild(btn);
+            });
+        }
+
+        function filterMatches(compName) {
+            currentFilter = compName;
+            const data = seasonsData[currentSeason];
+            renderMatchesFilters(data.competitions);
+            renderMatchesList(data.matches, compName);
+        }
+
+        // Render Matches List
+        function renderMatchesList(matches, compFilter) {
+            const container = document.getElementById('matchesList');
+            container.innerHTML = '';
+
+            const filtered = compFilter === 'ALL' ? matches : matches.filter(m => m.comp === compFilter);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Nenhum jogo registrado para este filtro.</p>`;
+                return;
+            }
+
+            filtered.forEach(m => {
+                let badgeClass = "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300";
+                if (m.result === 'D') badgeClass = "bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300";
+                if (m.result === 'L') badgeClass = "bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300";
+
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-emerald-950/20 border border-gray-100 dark:border-emerald-900/30 text-xs";
+                div.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="px-2 py-0.5 rounded font-bold text-[10px] ${badgeClass}">${m.result}</span>
+                        <div>
+                            <span class="font-bold text-gray-800 dark:text-gray-200">${m.home} ${m.score} ${m.away}</span>
+                            <span class="block text-[10px] text-gray-400">${m.comp} • ${m.date}</span>
+                        </div>
+                    </div>
+                    <span class="font-semibold text-palmeiras-gold">${m.score}</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Theme Toggle Functionality
+        function initTheme() {
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark');
+            }
+            updateThemeIcons();
+        }
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            updateThemeIcons();
+
+            // Refresh charts for color contrast update
+            loadSeasonData(currentSeason);
+            renderHistoricalChart();
+        }
+
+        function updateThemeIcons() {
+            const isDark = document.documentElement.classList.contains('dark');
+            document.getElementById('themeIconSun').classList.toggle('hidden', !isDark);
+            document.getElementById('themeIconMoon').classList.toggle('hidden', isDark);
+        }
+    </script>
+</body>
+</html>
